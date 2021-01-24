@@ -1,0 +1,15 @@
+set -e
+
+source "$(dirname "$0")/consts.bash"
+
+sudo cp $DHCPCD_CONF_AP_PATH $DHCPCD_CONF_PATH
+sudo cp $DNSMASQ_CONF_AP_PATH $DNSMASQ_CONF_PATH
+sudo cp $HOSTAPD_CONF_AP_PATH $HOSTAPD_CONF_PATH
+sudo cp $WPASUPPLICANT_CONF_AP_PATH $WPASUPPLICANT_CONF_PATH
+sudo cp $IPTABLESV4_CONF_AP_PATH $IPTABLESV4_CONF_PATH
+sudo cp $IPTABLESV6_CONF_AP_PATH $IPTABLESV6_CONF_PATH
+
+sudo systemctl unmask hostapd
+sudo systemctl enable hostapd
+
+sudo rfkill unblock wlan
