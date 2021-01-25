@@ -1,63 +1,61 @@
 import os
 import asyncio
-from wifi_setup_server import start_wifi_setup_server
+import logging
+from wifi_setup_server import get_credentials_from_server
 from stream_command import stream_command
 
-async def run_command(cmd, env={}):
-    proc = await asyncio.create_subprocess_shell(
+logging.basicConfig(level=logging.DEBUG)
+
+
+async def stream_with_labeled_output(label, cmd, env={}):
+    return await stream_command(
         cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-        env=dict(os.environ, **env))
-
-    stdout, stderr = await proc.communicate()
-
-    print(f'{cmd!r} exited with {proc.returncode}')
-
-    if stdout:
-        print(f'stdout:\n{stdout.decode()}')
-    if stderr:
-        print(f'stderr:\n{stderr.decode()}')
-
-    return proc, stdout, stderr
-    
-async def set_credentials_and_reboot(ssid, psk):
-  await run_command("bash scripts/setup_wifi_client.bash", { 'SSID': ssid, 'PSK': psk })
-  await run_command("sudo systemctl reboot")
+        lambda x: logging.debug(f"{label}: {x.decode()[:-1]}"),
+        lambda x: logging.debug(f"{label}_stderr: {x.decode()[:-1]}"),
+        env
+    )
 
 
-async def is_command_successful(cmd):
-    proc, _, __ = await run_command(cmd)
-
+async def is_command_successful(cmd, label, env={}):
+    proc = await stream_with_labeled_output(cmd, label, env)
     return proc.returncode == 0
 
 
 async def is_ap():
-    print("checking if ap")
-    return await is_command_successful("systemctl status hostapd")
+    logging.info("main: checking if ap")
+    return await is_command_successful("is_ap", ["systemctl", "status", "hostapd"])
 
-async def enable_ap_and_reboot():
-    await run_command("bash scripts/setup_wifi_ap.bash")
-    await run_command("sudo systemctl reboot")
 
 async def has_wifi_connection():
-    print("checking wifi connection")
-    return await is_command_successful("bash scripts/check_wifi_connection.bash")
+    logging.info("main: checking wifi connection")
+    return await is_command_successful("check_wifi", ["bash", "scripts/check_wifi_connection.bash"])
+
+
+async def set_credentials(ssid, psk):
+    await stream_with_labeled_output("set_credentials", ["bash", "scripts/setup_wifi_client.bash"], {'SSID': ssid, 'PSK': psk})
+
+
+async def enable_ap():
+    logging.info("main: enabling ap")
+    await stream_with_labeled_output("enable_ap", ["bash", "scripts/setup_wifi_ap.bash"])
 
 
 async def main():
-    if await is_ap():
-        print("access point, start wifi setup app")
-        await start_wifi_setup_server(set_credentials_and_reboot)
-    elif await has_wifi_connection():
-        await stream_command(
-            ["python3", "test_app.py"],
-            lambda x: print("APP STDOUT: %s" % x),
-            lambda x: print("APP STDERR: %s" % x),
-        )
-    else:
-        print("no connection, enable ap and reboot")
-        await enable_ap_and_reboot()
+    while True:
+        if await is_ap():
+            logging.info(
+                "main: access point enabled, get credentials from wifi setup app")
+            ssid, psk = await get_credentials_from_server()
+            await set_credentials(ssid, psk)
+        elif await has_wifi_connection():
+            logging.info("main: has wifi connection, run app server")
+            await stream_with_labeled_output(
+                "app",
+                ["python3", "-u", "test_app.py"]
+            )
+        else:
+            logging.info("main: no connection, enable ap")
+            await enable_ap()
 
 
 if __name__ == "__main__":

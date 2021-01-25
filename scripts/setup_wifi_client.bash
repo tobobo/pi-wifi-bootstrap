@@ -4,6 +4,10 @@ source "$(dirname "$0")/consts.bash"
 
 sudo systemctl mask hostapd
 sudo systemctl disable hostapd
+sudo systemctl stop hostapd || echo "hostapd not running"
+
+sudo systemctl disable dnsmasq
+sudo systemctl stop dnsmasq || echo "dnsmasq not running"
 
 sudo rfkill unblock wlan
 
@@ -31,3 +35,5 @@ network={
 " | sudo tee $WPASUPPLICANT_CONF_CLIENT_PATH
 
 sudo cp $WPASUPPLICANT_CONF_CLIENT_PATH $WPASUPPLICANT_CONF_PATH
+
+wpa_cli -i wlan0 reconfigure

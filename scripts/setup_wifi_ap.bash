@@ -9,7 +9,14 @@ sudo cp $WPASUPPLICANT_CONF_AP_PATH $WPASUPPLICANT_CONF_PATH
 sudo cp $IPTABLESV4_CONF_AP_PATH $IPTABLESV4_CONF_PATH
 sudo cp $IPTABLESV6_CONF_AP_PATH $IPTABLESV6_CONF_PATH
 
+wpa_cli -i wlan0 reconfigure
+
 sudo systemctl unmask hostapd
 sudo systemctl enable hostapd
 
+sudo systemctl enable dnsmasq
+
 sudo rfkill unblock wlan
+
+sudo systemctl start hostapd
+sudo systemctl start dnsmasq

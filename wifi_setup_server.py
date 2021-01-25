@@ -8,31 +8,37 @@ async def index(request):
 
 async def set_credentials(request):
     data = await request.post()
-    asyncio.create_task(request.app['set_credentials_and_reboot'](data['ssid'], data['psk']))
-    return web.Response(text="setting credentials and restarting...")
+    asyncio.create_task(request.app['credentials_callback'](
+        data['ssid'], data['psk']))
+    return web.Response(text="OK")
 
 
-async def start_wifi_setup_server(set_credentials_and_reboot):
+async def create_site(credentials_callback):
     app = web.Application()
-    app['set_credentials_and_reboot'] = set_credentials_and_reboot
+    app['credentials_callback'] = credentials_callback
     app.add_routes(
         [web.get('/', index), web.post('/set_credentials', set_credentials), web.static('/', 'public')])
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, '0.0.0.0', 8080)
-    await site.start()
-    print("web server started on port {0}".format(8080))
-    while 1:
-        await asyncio.sleep(1)
+    return web.TCPSite(runner, '0.0.0.0', 8080)
 
+
+async def get_credentials_from_server():
+    future = asyncio.get_event_loop().create_future()
+
+    async def credentials_callback(ssid, psk):
+        future.set_result((ssid, psk))
+        await site.stop()
+
+    site = await create_site(credentials_callback)
+    await site.start()
+    return await future
 
 if __name__ == "__main__":
-    async def set_credentials_and_reboot(ssid, psk):
-        print("doing some credential setting")
-        await asyncio.sleep(5)
+    async def get_credentials_and_report():
+        ssid, psk = await get_credentials_from_server()
         print(ssid)
         print(psk)
-        await asyncio.sleep(5)
-        print("restarting")
 
-    asyncio.run(start_wifi_setup_server(set_credentials_and_reboot))
+    while True:
+        asyncio.run(get_credentials_and_report())
