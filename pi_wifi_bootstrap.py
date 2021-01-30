@@ -1,6 +1,7 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+thisdir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(thisdir)
 
 import asyncio
 import logging
@@ -31,16 +32,16 @@ async def is_ap():
 
 async def has_wifi_connection():
     logging.info("main: checking wifi connection")
-    return await is_command_successful("check_wifi", ["bash", "scripts/check_wifi_connection.bash"])
+    return await is_command_successful("check_wifi", ["bash", f"{thisdir}/scripts/check_wifi_connection.bash"])
 
 
 async def set_credentials(ssid, psk):
-    await stream_with_labeled_output("set_credentials", ["bash", "scripts/setup_wifi_client.bash"], {'SSID': ssid, 'PSK': psk})
+    await stream_with_labeled_output("set_credentials", ["bash", f"{thisdir}/scripts/setup_wifi_client.bash"], {'SSID': ssid, 'PSK': psk})
 
 
 async def enable_ap():
     logging.info("main: enabling ap")
-    await stream_with_labeled_output("enable_ap", ["bash", "scripts/setup_wifi_ap.bash"])
+    await stream_with_labeled_output("enable_ap", ["bash", f"{thisdir}/scripts/setup_wifi_ap.bash"])
 
 
 async def run_wifi_bootstrap(app_directory, app_command):
