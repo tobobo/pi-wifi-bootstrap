@@ -40,7 +40,7 @@ async def enable_ap():
     await stream_with_labeled_output("enable_ap", ["bash", "scripts/setup_wifi_ap.bash"])
 
 
-async def main():
+async def run_wifi_bootstrap(app_directory, app_command):
     while True:
         if await is_ap():
             logging.info(
@@ -51,7 +51,7 @@ async def main():
             logging.info("main: has wifi connection, run app server")
             await stream_with_labeled_output(
                 "app",
-                ["python3", "-u", "test_app.py"]
+                ["bash", "-c", f"cd {app_directory} && {app_command}"]
             )
         else:
             logging.info("main: no connection, enable ap")
@@ -59,4 +59,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(run_wifi_bootstrap(".", "python3 -u test_app.py"))
