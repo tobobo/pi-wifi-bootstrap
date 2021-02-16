@@ -1,9 +1,12 @@
+import os
 import asyncio
 from aiohttp import web
 
+this_dir = os.path.dirname(os.path.realpath(__file__))
+
 
 async def index(request):
-    return web.FileResponse(path='public/index.html')
+    return web.FileResponse(path=f'{this_dir}/public/index.html')
 
 
 async def set_credentials(request):
@@ -17,7 +20,7 @@ async def create_site(credentials_callback):
     app = web.Application()
     app['credentials_callback'] = credentials_callback
     app.add_routes(
-        [web.get('/', index), web.post('/set_credentials', set_credentials), web.static('/', 'public')])
+        [web.get('/', index), web.post('/set_credentials', set_credentials), web.static('/', f'{this_dir}/public')])
     runner = web.AppRunner(app)
     await runner.setup()
     return web.TCPSite(runner, '0.0.0.0', 8080)

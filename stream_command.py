@@ -16,7 +16,7 @@ async def stream_command(cmd, stdout_cb, stderr_cb, env):
         *cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
-        env=dict(os.environ, **env)
+        env=dict(os.environ, **env),
     )
 
     await asyncio.wait([
