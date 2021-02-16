@@ -48,12 +48,12 @@ wpa_pairwise=TKIP
 rsn_pairwise=CCMP
 " | sudo tee -a $HOSTAPD_CONF_AP_PATH
 
-sudo cp $IPTABLESV4_CONF_PATH $IPTABLESV4_CONF_AP_PATH
-sudo cp $IPTABLESV6_CONF_PATH $IPTABLESV6_CONF_AP_PATH
+stat $IPTABLESV4_CONF_PATH && sudo cp $IPTABLESV4_CONF_PATH $IPTABLESV4_CONF_AP_PATH
+stat $IPTABLESV6_CONF_PATH && sudo cp $IPTABLESV6_CONF_PATH $IPTABLESV6_CONF_AP_PATH
 
 sudo cp $WPASUPPLICANT_CONF_PATH $WPASUPPLICANT_CONF_ORIG_PATH
 sudo cp $WPASUPPLICANT_CONF_PATH $WPASUPPLICANT_CONF_AP_PATH
 sudo cp $WPASUPPLICANT_CONF_PATH $WPASUPPLICANT_CONF_CLIENT_PATH
 
 sudo apt-get install -y python3-pip
-sudo python3 -m pip install -r requirements.txt
+sudo python3 -m pip install -r "$(dirname "$0")/requirements.txt"

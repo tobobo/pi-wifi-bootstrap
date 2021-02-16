@@ -1,5 +1,5 @@
-from stream_command import stream_command
-from wifi_setup_server import get_credentials_from_server
+from .stream_command import stream_command
+from .wifi_setup_server import get_credentials_from_server
 import logging
 import asyncio
 import sys
@@ -61,5 +61,5 @@ async def run_wifi_bootstrap(app_directory, app_command):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s', level=logging.DEBUG)
     asyncio.run(run_wifi_bootstrap(".", "python3 -u test_app.py"))
