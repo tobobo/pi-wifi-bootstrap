@@ -23,7 +23,7 @@ async def create_site(credentials_callback):
         [web.get('/', index), web.post('/set_credentials', set_credentials), web.static('/', f'{this_dir}/public')])
     runner = web.AppRunner(app)
     await runner.setup()
-    return web.TCPSite(runner, '0.0.0.0', 8080)
+    return web.TCPSite(runner, '0.0.0.0', 80)
 
 
 async def get_credentials_from_server():

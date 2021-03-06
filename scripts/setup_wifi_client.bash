@@ -36,4 +36,4 @@ network={
 
 sudo cp $WPASUPPLICANT_CONF_CLIENT_PATH $WPASUPPLICANT_CONF_PATH
 
-wpa_cli -i wlan0 reconfigure
+bash "$(dirname "$0")/reconfigure_wlan.bash"
